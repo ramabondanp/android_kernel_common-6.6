@@ -364,6 +364,12 @@ DECLARE_HOOK(android_vh_madvise_cold_or_pageout_abort,
 DECLARE_HOOK(android_vh_customize_thp_gfp_orders,
 	TP_PROTO(gfp_t *gfp_mask, unsigned long *orders, int *order),
 	TP_ARGS(gfp_mask, orders, order));
+DECLARE_HOOK(android_vh_zs_shrinker_adjust,
+	TP_PROTO(unsigned long *pages_to_free),
+	TP_ARGS(pages_to_free));
+DECLARE_HOOK(android_vh_zs_shrinker_bypass,
+	TP_PROTO(bool *bypass),
+	TP_ARGS(bypass));
 DECLARE_HOOK(android_vh_customize_pmd_gfp_bypass,
 	TP_PROTO(gfp_t *gfp_mask, bool *bypass),
 	TP_ARGS(gfp_mask, bypass));
