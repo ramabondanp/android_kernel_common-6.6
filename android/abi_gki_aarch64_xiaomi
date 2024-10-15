@@ -69,6 +69,7 @@
   blk_mq_quiesce_tagset
   blk_mq_unquiesce_tagset
   memblock_free
+  mem_cgroup_move_account
   __traceiter_android_vh_anon_vma_name_recog
   __traceiter_android_vh_restore_mm_flags
   __traceiter_android_vh_update_vma_flags
@@ -77,6 +78,12 @@
   __tracepoint_android_vh_update_vma_flags
   mmc_set_blocklen
   nr_free_buffer_pages
+  __traceiter_android_vh_mem_cgroup_charge
+  __traceiter_android_vh_filemap_add_folio
+  __traceiter_android_vh_shrink_node
+  __tracepoint_android_vh_mem_cgroup_charge
+  __tracepoint_android_vh_filemap_add_folio
+  __tracepoint_android_vh_shrink_node
 
 #required by metis.ko module
   __traceiter_android_vh_rwsem_read_wait_start
