@@ -46,6 +46,9 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/thp.h>
 
+#undef CREATE_TRACE_POINTS
+#include <trace/hooks/huge_memory.h>
+
 /*
  * By default, transparent hugepage support is disabled in order to avoid
  * risking an increased memory footprint for applications that are not
@@ -82,6 +85,8 @@ unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
 	/* Check the intersection of requested and supported orders. */
 	orders &= vma_is_anonymous(vma) ?
 			THP_ORDERS_ALL_ANON : THP_ORDERS_ALL_FILE;
+
+	trace_android_vh_thp_vma_allowable_orders(vma, &orders);
 	if (!orders)
 		return 0;
 
