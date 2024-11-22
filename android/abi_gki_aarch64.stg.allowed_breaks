@@ -1,0 +1,6 @@
+# How to use this file: http://go/approve-abi-break
+# ABI freeze commit: 666cbbfe5c567ca79da30dccad8b5257ca88f02c
+
+type 'struct cgroup_root' changed
+  member 'u8 android_backport_reserved1[28]' was removed
+  member 'union { struct callback_head rcu; struct { u8 android_backport_reserved1[28]; }; union { }; }' was added
