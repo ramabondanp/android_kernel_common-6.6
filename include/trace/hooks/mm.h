@@ -364,6 +364,9 @@ DECLARE_HOOK(android_vh_madvise_cold_or_pageout_abort,
 DECLARE_HOOK(android_vh_customize_thp_gfp_orders,
 	TP_PROTO(gfp_t *gfp_mask, unsigned long *orders, int *order),
 	TP_ARGS(gfp_mask, orders, order));
+DECLARE_HOOK(android_vh_customize_pmd_gfp_bypass,
+	TP_PROTO(gfp_t *gfp_mask, bool *bypass),
+	TP_ARGS(gfp_mask, bypass));
 #endif /* _TRACE_HOOK_MM_H */
 
 /* This part must be outside protection */
