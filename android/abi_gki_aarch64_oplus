@@ -502,6 +502,7 @@
   vfs_path_lookup
   vfs_rename
   vfs_rmdir
+  vfs_splice_read
   vfs_statfs
   vfs_unlink
   wait_for_completion_io_timeout
