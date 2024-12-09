@@ -95,6 +95,14 @@
   __traceiter_android_vh_compact_finished
   __tracepoint_android_vh_madvise_cold_or_pageout_abort
   __tracepoint_android_vh_compact_finished
+  __tracepoint_cma_alloc_start
+  __tracepoint_cma_alloc_busy_retry
+  __tracepoint_cma_alloc_finish
+  __tracepoint_cma_release
+  __traceiter_cma_alloc_start
+  __traceiter_cma_alloc_busy_retry
+  __traceiter_cma_alloc_finish
+  __traceiter_cma_release
 
 #required by metis.ko module
   __traceiter_android_vh_rwsem_read_wait_start
