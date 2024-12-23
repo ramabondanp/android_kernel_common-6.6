@@ -104,3 +104,5 @@
   __tracepoint_android_vh_do_read_fault
   __tracepoint_android_vh_filemap_read
   __tracepoint_android_vh_filemap_map_pages
+  __traceiter_android_rvh_do_read_fault
+  __tracepoint_android_rvh_do_read_fault
