@@ -389,6 +389,9 @@ DECLARE_HOOK(android_vh_zs_shrinker_bypass,
 DECLARE_HOOK(android_vh_customize_pmd_gfp_bypass,
 	TP_PROTO(gfp_t *gfp_mask, bool *bypass),
 	TP_ARGS(gfp_mask, bypass));
+DECLARE_HOOK(android_vh_page_private_mod,
+	TP_PROTO(struct page *page, unsigned long private),
+	TP_ARGS(page, private));
 #endif /* _TRACE_HOOK_MM_H */
 
 /* This part must be outside protection */
