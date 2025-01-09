@@ -107,6 +107,9 @@
   __tracepoint_android_vh_dma_buf_release
   __traceiter_android_vh_customize_pmd_gfp_bypass
   __tracepoint_android_vh_customize_pmd_gfp_bypass
+  __traceiter_android_vh_page_private_mod
+  __tracepoint_android_vh_page_private_mod
+  set_page_private
 
 #required by metis.ko module
   __traceiter_android_vh_rwsem_read_wait_start
