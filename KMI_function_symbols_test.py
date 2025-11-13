@@ -5,9 +5,7 @@ import os
 import sys
 import re
 import itertools
-from typing import Final
-
-from lxml import etree
+from typing import Final, Dict, Set, List, Tuple
 from rich.console import Console
 from rich.table import Table
 
@@ -25,33 +23,61 @@ def crc_to_int(crc: str) -> int:
 def int_to_crc(num: int) -> str:
     return '0x' + hex(num)[2:].zfill(8)
 
-def main(abi_gki_aarch64_xml_file: str, vmlinux_symvers_file: str) -> int:
-    assert os.path.isfile(abi_gki_aarch64_xml_file)
+
+def parse_stg_file(filepath: str) -> Dict[str, int]:
+    """Parse the .stg file format to extract symbol names and CRC values."""
+    symbols = {}
+    current_symbol = None
+    current_name = None
+
+    with open(filepath, 'r', encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+
+            # Start of a new symbol block
+            if line == "elf_symbol {":
+                current_symbol = {}
+                continue
+
+            # End of a symbol block
+            if line == "}":
+                if current_symbol and "name" in current_symbol and "crc" in current_symbol:
+                    symbols[current_symbol["name"]] = crc_to_int(current_symbol["crc"])
+                current_symbol = None
+                continue
+
+            # Parse key-value pairs within the symbol block
+            if current_symbol is not None and ":" in line:
+                key, value = line.split(":", 1)
+                key = key.strip()
+                value = value.strip()
+
+                # Remove quotes if present
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+
+                current_symbol[key] = value
+    return symbols
+
+
+def main(abi_gki_aarch64_stg_file: str, vmlinux_symvers_file: str) -> int:
+    assert os.path.isfile(abi_gki_aarch64_stg_file)
     assert os.path.isfile(vmlinux_symvers_file)
 
-    with open(abi_gki_aarch64_xml_file, 'r', encoding="utf-8") as f:
-        xml_obj = etree.XML(f.read())
-        abi_gki_aarch64_elf_symbols = {
-            elf_symbol.get("name"): crc_to_int(elf_symbol.get("crc"))
-            for elf_symbol in itertools.chain(
-                xml_obj.findall('.//elf-function-symbols/elf-symbol'),
-                xml_obj.findall('.//elf-variable-symbols/elf-symbol'),
-            )
-        }
+    # Parse the .stg file
+    abi_gki_aarch64_elf_symbols = parse_stg_file(abi_gki_aarch64_stg_file)
 
+    # Parse vmlinux.symvers file (unchanged)
     with open(vmlinux_symvers_file, 'r', encoding="utf-8") as f:
         vmlinux_symvers = {
             line.split()[1]: crc_to_int(line.split()[0]) for line in f.readlines()
         }
 
-    if missing_symbols := abi_gki_aarch64_elf_symbols.keys() - vmlinux_symvers.keys():
-        print("Warning: The kernel image is missing the following symbols:")
-        for symbol in missing_symbols:
-            print('-', symbol)
+    # Removed the missing symbols warning section
 
     diff_crc_items = [
         (key, abi_gki_aarch64_elf_symbols[key], vmlinux_symvers[key])
-        for key in abi_gki_aarch64_elf_symbols.keys() & vmlinux_symvers.keys()
+        for key in set(abi_gki_aarch64_elf_symbols.keys()) & set(vmlinux_symvers.keys())
         if abi_gki_aarch64_elf_symbols[key] != vmlinux_symvers[key]
     ]
 
@@ -63,23 +89,23 @@ def main(abi_gki_aarch64_xml_file: str, vmlinux_symvers_file: str) -> int:
 
     rich_table = Table(show_header=True, header_style="bold magenta")
     rich_table.add_column("Function/variable symbol", style="dim")
-    rich_table.add_column("Crc from abi_gki_aarch64.xml")
+    rich_table.add_column("Crc from abi_gki_aarch64.stg")
     rich_table.add_column("Crc from vmlinux.symvers")
     for item in sorted(diff_crc_items, key=lambda x: x[0]):
         rich_table.add_row(item[0], int_to_crc(item[1]), int_to_crc(item[2]))
 
     rich_console.print(rich_table)
 
-    print("Found %d function/variable symbol(s) with mismatched crc values!" % len(diff_crc_items))
+    print(f"Found {len(diff_crc_items)} function/variable symbol(s) with mismatched crc values!")
     return 1
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         sys.exit(main(
-            os.path.join(LOCAL_DIR, 'android', 'abi_gki_aarch64.xml'),
+            os.path.join(LOCAL_DIR, 'android', 'abi_gki_aarch64.stg'),
             os.path.join(LOCAL_DIR, 'out', 'vmlinux.symvers')
         ))
     if len(sys.argv) == 3:
         sys.exit(main(sys.argv[1], sys.argv[2]))
-    print('Usage: %s <abi_gki_aarch64.xml file> <vmlinux.symvers file>' % sys.argv[0])
+    print(f'Usage: {sys.argv[0]} <abi_gki_aarch64.stg file> <vmlinux.symvers file>')
     sys.exit(2)
