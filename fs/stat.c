@@ -20,11 +20,19 @@
 #include <linux/compat.h>
 #include <linux/iversion.h>
 
+#ifdef CONFIG_KSU_SUSFS
+#include <linux/susfs_def.h>
+#include <linux/version.h>
+#endif
 #include <linux/uaccess.h>
 #include <asm/unistd.h>
 
 #include "internal.h"
 #include "mount.h"
+
+#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
+extern void susfs_sus_ino_for_generic_fillattr(unsigned long ino, struct kstat *stat);
+#endif
 
 /**
  * generic_fillattr - Fill in the basic attributes from the inode struct
@@ -48,6 +56,19 @@ void generic_fillattr(struct mnt_idmap *idmap, u32 request_mask,
 {
 	vfsuid_t vfsuid = i_uid_into_vfsuid(idmap, inode);
 	vfsgid_t vfsgid = i_gid_into_vfsgid(idmap, inode);
+
+#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
+	if (likely(susfs_is_current_proc_umounted()) &&
+	    unlikely(inode->i_mapping->flags & BIT_SUS_KSTAT))
+	{
+		susfs_sus_ino_for_generic_fillattr(inode->i_ino, stat);
+		stat->mode = inode->i_mode;
+		stat->rdev = inode->i_rdev;
+		stat->uid = vfsuid_into_kuid(vfsuid);
+		stat->gid = vfsgid_into_kgid(vfsgid);
+		return;
+	}
+#endif
 
 	stat->dev = inode->i_sb->s_dev;
 	stat->ino = inode->i_ino;
@@ -214,6 +235,15 @@ int getname_statx_lookup_flags(int flags)
 	return lookup_flags;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+extern bool __ksu_is_allow_uid_for_current(uid_t uid);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
+extern int ksu_handle_stat(int *dfd, struct filename **filename, int *flags);
+#else
+extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
+#endif
+#endif
+
 /**
  * vfs_statx - Get basic and extra attributes by filename
  * @dfd: A file descriptor representing the base dir for a relative filename
@@ -235,6 +265,19 @@ static int vfs_statx(int dfd, struct filename *filename, int flags,
 	struct path path;
 	unsigned int lookup_flags = getname_statx_lookup_flags(flags);
 	int error;
+
+#ifdef CONFIG_KSU_SUSFS
+	if (likely(susfs_is_current_proc_umounted())) {
+		goto orig_flow;
+	}
+
+	if (unlikely(__ksu_is_allow_uid_for_current(current_uid().val))) {
+		ksu_handle_stat(&dfd, &filename, &flags);
+	}
+
+orig_flow:
+#endif
+
 
 	if (flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT | AT_EMPTY_PATH |
 		      AT_STATX_SYNC_TYPE))
