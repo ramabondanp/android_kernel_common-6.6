@@ -10,8 +10,10 @@
 #include <linux/uaccess.h>
 #include <linux/compat.h>
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+#ifndef __GENKSYMS__
 #include <linux/susfs_def.h>
 #include "mount.h"
+#endif
 #endif
 #include "internal.h"
 
